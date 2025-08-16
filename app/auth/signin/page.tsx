@@ -23,10 +23,40 @@ export default function SignInPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
+    // Check for dummy users first
+    if (email === "admin@markethub.com" && password === "admin123") {
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          email,
+          role: "admin",
+          name: "Admin User",
+        }),
+      )
+      setIsLoading(false)
+      router.push("/admin/dashboard")
+      return
+    }
+
+    if (email === "seller@example.com" && password === "seller123") {
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          email,
+          role: "seller",
+          name: "Jane Seller",
+          storeId: "tech-innovations-hub",
+        }),
+      )
+      setIsLoading(false)
+      router.push("/seller/dashboard")
+      return
+    }
+
+    // Simulate API call for regular users
     setTimeout(() => {
       // Store user session (in real app, this would be handled by auth service)
-      localStorage.setItem("user", JSON.stringify({ email, role: "customer" }))
+      localStorage.setItem("user", JSON.stringify({ email, role: "customer", name: "Customer User" }))
       setIsLoading(false)
       router.push("/marketplace")
     }, 1000)

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ShoppingBag, Eye, EyeOff } from "lucide-react"
@@ -21,7 +20,6 @@ export default function SignUpPage() {
     lastName: "",
     email: "",
     password: "",
-    accountType: "",
     agreeToTerms: false,
   })
   const [isLoading, setIsLoading] = useState(false)
@@ -33,23 +31,16 @@ export default function SignUpPage() {
 
     // Simulate API call
     setTimeout(() => {
-      // Store user session
       localStorage.setItem(
         "user",
         JSON.stringify({
           email: formData.email,
-          role: formData.accountType,
+          role: "customer", // Always start as customer
           name: `${formData.firstName} ${formData.lastName}`,
         }),
       )
       setIsLoading(false)
-
-      // Redirect based on account type
-      if (formData.accountType === "seller") {
-        router.push("/store/apply")
-      } else {
-        router.push("/marketplace")
-      }
+      router.push("/marketplace")
     }, 1000)
   }
 
@@ -68,7 +59,7 @@ export default function SignUpPage() {
         <Card>
           <CardHeader>
             <CardTitle>Sign Up</CardTitle>
-            <CardDescription>Create your account to get started</CardDescription>
+            <CardDescription>Create your customer account to get started</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp} className="space-y-4">
@@ -105,22 +96,6 @@ export default function SignUpPage() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="accountType">Account Type</Label>
-                <Select
-                  value={formData.accountType}
-                  onValueChange={(value) => setFormData({ ...formData, accountType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select account type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="customer">Customer - I want to buy products</SelectItem>
-                    <SelectItem value="seller">Seller - I want to sell products</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">

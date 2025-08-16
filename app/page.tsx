@@ -21,8 +21,8 @@ export default function HomePage() {
               <Link href="/marketplace" className="text-muted-foreground hover:text-foreground transition-colors">
                 Marketplace
               </Link>
-              <Link href="/sell" className="text-muted-foreground hover:text-foreground transition-colors">
-                Start Selling
+              <Link href="/demo" className="text-muted-foreground hover:text-foreground transition-colors">
+                Demo
               </Link>
               <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
                 About
