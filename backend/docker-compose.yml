@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: fashionhub-postgres
+    environment:
+      POSTGRES_DB: fashionhub_db
+      POSTGRES_USER: fashionhub_user
+      POSTGRES_PASSWORD: fashionhub_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - fashionhub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fashionhub_user -d fashionhub_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: fashionhub-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fashionhub-network
+    command: redis-server --appendonly yes --requirepass redis_password
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # FashionHub Backend
+  backend:
+    build: .
+    container_name: fashionhub-backend
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://fashionhub_user:fashionhub_password@postgres:5432/fashionhub_db
+      REDIS_URL: redis://:redis_password@redis:6379
+      JWT_SECRET: your-super-secret-jwt-key-here-make-it-very-long-and-random
+      JWT_REFRESH_SECRET: your-super-secret-refresh-key-here-make-it-very-long-and-random
+      STRIPE_SECRET_KEY: sk_test_your_stripe_secret_key
+      STRIPE_WEBHOOK_SECRET: whsec_your_webhook_secret
+      PAYPAL_CLIENT_ID: your_paypal_client_id
+      PAYPAL_CLIENT_SECRET: your_paypal_client_secret
+      COINBASE_COMMERCE_API_KEY: your_coinbase_commerce_api_key
+      CORS_ORIGIN: http://localhost:3000
+      UPLOAD_PATH: ./uploads
+      SESSION_SECRET: your-super-secret-session-key-here
+      COOKIE_SECRET: your-super-secret-cookie-key-here
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fashionhub-network
+    command: npm run dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # pgAdmin (Optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fashionhub-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fashionhub.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - fashionhub-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:
+
+networks:
+  fashionhub-network:
+    driver: bridge

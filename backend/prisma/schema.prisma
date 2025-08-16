@@ -1,0 +1,541 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  customer
+  seller
+  admin
+  moderator
+}
+
+enum UserStatus {
+  active
+  inactive
+  suspended
+  pending_verification
+  banned
+}
+
+enum ProductStatus {
+  active
+  inactive
+  draft
+  archived
+  out_of_stock
+  coming_soon
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  processing
+  shipped
+  delivered
+  cancelled
+  refunded
+  disputed
+}
+
+enum PaymentStatus {
+  pending
+  processing
+  completed
+  failed
+  refunded
+  cancelled
+  disputed
+}
+
+enum PaymentMethod {
+  stripe_card
+  stripe_bank_transfer
+  paypal
+  apple_pay
+  google_pay
+  crypto
+}
+
+enum ClothingCategory {
+  tops
+  bottoms
+  dresses
+  outerwear
+  activewear
+  intimates
+  sleepwear
+  swimwear
+  accessories
+  shoes
+  bags
+  jewelry
+}
+
+enum GenderType {
+  men
+  women
+  unisex
+  kids
+  baby
+}
+
+enum AgeGroupType {
+  infant
+  toddler
+  child
+  teen
+  adult
+  senior
+}
+
+enum StoreStatus {
+  pending
+  approved
+  rejected
+  suspended
+  closed
+  under_review
+}
+
+enum StoreCategory {
+  fashion
+  beauty
+  accessories
+  footwear
+  jewelry
+  home_decor
+  sports
+  vintage
+  luxury
+  sustainable
+}
+
+// Models
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  passwordHash          String
+  firstName             String
+  lastName              String
+  phone                 String?
+  role                  UserRole  @default(customer)
+  status                UserStatus @default(pending_verification)
+  emailVerified         Boolean   @default(false)
+  emailVerificationToken String?   @unique
+  passwordResetToken    String?   @unique
+  passwordResetExpires  DateTime?
+  lastLogin             DateTime?
+  twoFactorEnabled      Boolean   @default(false)
+  twoFactorSecret       String?
+  loginAttempts         Int       @default(0)
+  lockedUntil           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  profile               UserProfile?
+  addresses             Address[]
+  orders                Order[]
+  reviews               Review[]
+  cartItems             CartItem[]
+  wishlistItems         WishlistItem[]
+  store                 Store?
+  refreshTokens         RefreshToken[]
+  notifications         Notification[]
+  paymentMethods        PaymentMethod[]
+  securityLogs          SecurityLog[]
+
+  @@map("users")
+  @@index([email])
+  @@index([status])
+  @@index([role])
+}
+
+model UserProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  avatar      String?
+  bio         String?
+  dateOfBirth DateTime?
+  preferences Json?
+  socialLinks Json?
+  location    String?
+  timezone    String?
+  language    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // shipping, billing
+  firstName   String
+  lastName    String
+  company     String?
+  address1    String
+  address2    String?
+  city        String
+  state       String
+  zipCode     String
+  country     String
+  phone       String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders      Order[]
+
+  @@map("addresses")
+  @@index([userId])
+  @@index([type])
+}
+
+model Store {
+  id                String        @id @default(cuid())
+  ownerId           String        @unique
+  name              String
+  slug              String        @unique
+  description       String?
+  logoUrl           String?
+  bannerUrl         String?
+  status            StoreStatus   @default(pending)
+  category          StoreCategory
+  phone             String?
+  email             String?
+  address           String?
+  websiteUrl        String?
+  businessName      String?
+  businessType      String?
+  taxId             String?
+  setupFeePaid      Boolean       @default(false)
+  setupFeeAmount    Decimal       @default(299.00) @db.Decimal(10, 2)
+  setupFeePaymentId String?
+  commissionRate    Decimal       @default(0.05) @db.Decimal(5, 4)
+  autoApproveOrders Boolean       @default(true)
+  vacationMode      Boolean       @default(false)
+  vacationMessage   String?
+  totalSales        Decimal       @default(0) @db.Decimal(12, 2)
+  totalOrders       Int           @default(0)
+  averageRating     Decimal       @default(0) @db.Decimal(3, 2)
+  totalReviews      Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  owner             User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  products          Product[]
+
+  @@map("stores")
+  @@index([status])
+  @@index([category])
+  @@index([slug])
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  storeId         String?
+  name            String
+  slug            String        @unique
+  description     String?
+  price           Decimal       @db.Decimal(10, 2)
+  comparePrice    Decimal?      @db.Decimal(10, 2)
+  costPrice       Decimal?      @db.Decimal(10, 2)
+  sku             String?       @unique
+  category        ClothingCategory
+  subcategory     String?
+  gender          GenderType
+  ageGroup        AgeGroupType
+  brand           String        @default("FashionHub")
+  material        String?
+  careInstructions String?
+  countryOfOrigin String?
+  hasVariants     Boolean       @default(true)
+  trackQuantity   Boolean       @default(true)
+  stockQuantity   Int           @default(0)
+  status          ProductStatus @default(active)
+  weight          Decimal?      @db.Decimal(8, 3)
+  dimensions      Json?
+  images          String[]
+  specifications  Json?
+  rating          Decimal       @default(0) @db.Decimal(3, 2)
+  reviewCount     Int           @default(0)
+  featured        Boolean       @default(false)
+  trending        Boolean       @default(false)
+  seoTitle        String?
+  seoDescription  String?
+  tags            String[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  store           Store?        @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  variants        ProductVariant[]
+  orderItems      OrderItem[]
+  cartItems       CartItem[]
+  wishlistItems   WishlistItem[]
+  reviews         Review[]
+
+  @@map("products")
+  @@index([storeId])
+  @@index([category])
+  @@index([status])
+  @@index([price])
+  @@index([rating])
+  @@index([featured])
+  @@index([trending])
+}
+
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String
+  name        String   // e.g., "Size", "Color"
+  value       String   // e.g., "Large", "Red"
+  sku         String?
+  price       Decimal? @db.Decimal(10, 2)
+  stockQuantity Int    @default(0)
+  weight      Decimal? @db.Decimal(8, 3)
+  dimensions  Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_variants")
+  @@index([productId])
+  @@index([sku])
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  userId          String
+  status          OrderStatus   @default(pending)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  taxAmount       Decimal       @db.Decimal(10, 2)
+  shippingAmount  Decimal       @db.Decimal(10, 2)
+  totalAmount     Decimal       @db.Decimal(10, 2)
+  paymentIntentId String?
+  trackingNumber  String?
+  notes           String?
+  shippingAddressId String
+  billingAddressId String
+  estimatedDelivery DateTime?
+  actualDelivery   DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shippingAddress Address       @relation(fields: [shippingAddressId], references: [id])
+  billingAddress  Address       @relation(fields: [billingAddressId], references: [id])
+  items           OrderItem[]
+  payments        Payment[]
+
+  @@map("orders")
+  @@index([userId])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  productName String
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+  totalPrice  Decimal @db.Decimal(10, 2)
+  variantId   String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  orderId         String
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("USD")
+  status          PaymentStatus @default(pending)
+  paymentMethodId String?
+  stripePaymentIntentId String?
+  paypalOrderId   String?
+  cryptoTransactionHash String?
+  refunded        Boolean       @default(false)
+  refundAmount    Decimal?      @db.Decimal(10, 2)
+  refundReason    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+
+  @@map("payments")
+  @@index([orderId])
+  @@index([status])
+  @@index([stripePaymentIntentId])
+}
+
+model PaymentMethod {
+  id              String        @id @default(cuid())
+  userId          String
+  type            PaymentMethod
+  name            String        // e.g., "Visa ending in 1234"
+  last4           String?
+  brand           String?       // visa, mastercard, etc.
+  expMonth        Int?
+  expYear         Int?
+  isDefault       Boolean       @default(false)
+  isVerified      Boolean       @default(false)
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+
+  @@map("payment_methods")
+  @@index([userId])
+  @@index([type])
+  @@index([isDefault])
+}
+
+model CartItem {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String
+  quantity    Int
+  variantId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId, variantId])
+  @@map("cart_items")
+  @@index([userId])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlist_items")
+  @@index([userId])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String
+  rating      Int      // 1-5 stars
+  title       String?
+  comment     String?
+  helpful     Int      @default(0)
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("reviews")
+  @@index([productId])
+  @@index([rating])
+  @@index([verified])
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  isRevoked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([isRevoked])
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // order_update, payment, security, etc.
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model SecurityLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String   // login, logout, password_change, etc.
+  ipAddress   String?
+  userAgent   String?
+  location    String?
+  success     Boolean
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("security_logs")
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([ipAddress])
+}

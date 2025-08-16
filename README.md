@@ -1,30 +1,94 @@
-# E-commerce site architecture
+# FashionHub - E-commerce Platform
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A modern, full-stack e-commerce platform built with Next.js frontend and Node.js backend.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/usamashabir37-7129s-projects/v0-e-commerce-site-architecture)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/hA55gbPlg8i)
+## 🏗️ Project Structure
 
-## Overview
+```
+Online-store/
+├── frontend/          # Next.js 15 + React 19 Frontend
+├── backend/           # Node.js + Express.js Backend
+└── docs/             # Project Documentation
+```
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## 🚀 Quick Start
 
-## Deployment
+### Frontend (Next.js)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Frontend will be available at: http://localhost:3000
 
-Your project is live at:
+### Backend (Node.js + PostgreSQL)
+```bash
+cd backend
+npm install
+# Copy .env.example to .env and configure
+npm run dev
+```
+Backend will be available at: http://localhost:5000
 
-**[https://vercel.com/usamashabir37-7129s-projects/v0-e-commerce-site-architecture](https://vercel.com/usamashabir37-7129s-projects/v0-e-commerce-site-architecture)**
+### Using Docker (Recommended)
+```bash
+cd backend
+docker-compose up -d
+```
 
-## Build your app
+## 🛠️ Tech Stack
 
-Continue building your app on:
+### Frontend
+- **Framework**: Next.js 15 + React 19
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI
+- **Forms**: React Hook Form + Zod
+- **Language**: TypeScript
 
-**[https://v0.app/chat/projects/hA55gbPlg8i](https://v0.app/chat/projects/hA55gbPlg8i)**
+### Backend
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
+- **Database**: PostgreSQL 15+
+- **ORM**: Prisma
+- **Authentication**: JWT + Refresh Tokens
+- **Payments**: Stripe, PayPal, Crypto
+- **Security**: 2FA, Rate Limiting, Security Logging
+- **File Upload**: Multer + Sharp
+- **Validation**: Express-validator
+- **Logging**: Winston + Pino
 
-## How It Works
+## 📚 Documentation
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- **API Endpoints**: See `docs/api-endpoints.md`
+- **Backend Architecture**: See `docs/backend-architecture.md`
+- **Database Schema**: See `docs/database-schema.md`
+- **Backend Security**: See `backend/security-documentation.md`
+
+## 🔐 Security Features
+
+- Two-Factor Authentication (TOTP)
+- Rate Limiting & DDoS Protection
+- Security Headers (Helmet)
+- Input Validation & Sanitization
+- JWT Token Management
+- Account Lockout Protection
+- Security Event Logging
+- XSS & CSRF Protection
+
+## 💳 Payment Methods
+
+- Stripe (Credit Cards)
+- PayPal
+- Crypto (Coinbase Commerce)
+
+## 🐳 Docker Support
+
+Both frontend and backend include Docker configurations for easy development and deployment.
+
+## 📝 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+**Note**: This project is automatically synced with v0.app deployments and deployed on Vercel.
