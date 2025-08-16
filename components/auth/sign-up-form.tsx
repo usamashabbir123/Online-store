@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShoppingBag, Mail, Lock, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 
@@ -20,7 +19,6 @@ export function SignUpForm() {
     lastName: "",
     email: "",
     password: "",
-    accountType: "",
     agreeToTerms: false,
   })
 
@@ -81,19 +79,6 @@ export function SignUpForm() {
                   required
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="accountType">Account Type</Label>
-              <Select onValueChange={(value) => setFormData({ ...formData, accountType: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select account type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="buyer">Buyer - Browse and purchase products</SelectItem>
-                  <SelectItem value="seller">Seller - Create and manage your store</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">

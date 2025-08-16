@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ShoppingBag, User, Store, ArrowLeft } from "lucide-react"
+import { ShoppingBag, User, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -78,9 +78,7 @@ export default function ProfilePage() {
             <div>
               <h1 className="text-3xl font-heading font-bold">{user.name || "User"}</h1>
               <p className="text-muted-foreground">{user.email}</p>
-              <Badge variant={user.role === "admin" ? "destructive" : user.role === "seller" ? "default" : "secondary"}>
-                {user.role || "customer"}
-              </Badge>
+              <Badge variant={user.role === "admin" ? "destructive" : "secondary"}>{user.role || "customer"}</Badge>
             </div>
           </div>
 
@@ -88,7 +86,6 @@ export default function ProfilePage() {
             <TabsList>
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="orders">Orders</TabsTrigger>
-              {user.role === "customer" && <TabsTrigger value="store-request">Request Store</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="profile">
@@ -135,30 +132,6 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
             </TabsContent>
-
-            {user.role === "customer" && (
-              <TabsContent value="store-request">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Store className="h-5 w-5" />
-                      Request to Open a Store
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <p className="text-muted-foreground">
-                        Want to sell on MarketHub? Submit a request to open your own store. Our team will review your
-                        application.
-                      </p>
-                      <Button asChild>
-                        <Link href="/store/apply">Apply for Store</Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
           </Tabs>
         </div>
       </div>

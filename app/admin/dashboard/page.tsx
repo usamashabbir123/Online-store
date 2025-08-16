@@ -2,7 +2,6 @@ import { AdminLayout } from "@/components/admin/admin-layout"
 import { AdminOverview } from "@/components/admin/admin-overview"
 import { PlatformMetrics } from "@/components/admin/platform-metrics"
 import { RecentActivity } from "@/components/admin/recent-activity"
-import { PendingApprovals } from "@/components/admin/pending-approvals"
 
 export default function AdminDashboardPage() {
   return (
@@ -20,11 +19,9 @@ export default function AdminDashboardPage() {
             <PlatformMetrics />
           </div>
           <div>
-            <PendingApprovals />
+            <RecentActivity />
           </div>
         </div>
-
-        <RecentActivity />
       </div>
     </AdminLayout>
   )

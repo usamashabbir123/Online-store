@@ -18,8 +18,9 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "StyleHub - Ultra-Modern Fashion Marketplace",
-  description: "Discover the latest fashion trends for men, women, and children in our premium clothing marketplace",
+  title: "FashionHub - Premium Fashion Destination",
+  description:
+    "Discover the latest trends in men's, women's, and children's fashion with our curated collection of premium clothing",
   generator: "v0.app",
 }
 
