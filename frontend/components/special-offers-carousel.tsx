@@ -97,7 +97,7 @@ export function SpecialOffersCarousel() {
   }, [api])
 
   return (
-    <section className="relative -mt-8 py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10 overflow-hidden">
+    <section className="relative py-16 bg-gradient-to-br from-primary/10 via-background to-accent/10 overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
@@ -132,8 +132,8 @@ export function SpecialOffersCarousel() {
             <CarouselContent className="-ml-4 md:-ml-6">
               {specialOffers.map((offer) => (
                 <CarouselItem key={offer.id} className="pl-4 md:pl-6 basis-full md:basis-1/2 lg:basis-1/3">
-                  <Card className="overflow-hidden hover:shadow-2xl transition-all duration-500 group border-0 bg-background/80 backdrop-blur-md h-[600px] relative">
-                    <div className="relative h-80 overflow-hidden">
+                  <Card className="overflow-hidden hover:shadow-2xl transition-all duration-500 group border-0 bg-background/80 backdrop-blur-md h-[700px] relative">
+                    <div className="relative h-96 overflow-hidden">
                       <Image
                         src={offer.image}
                         alt={offer.title}

@@ -98,6 +98,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       <Navigation />
 
+      {/* Special Offers Carousel - Moved to top */}
+      <SpecialOffersCarousel />
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-hidden">
         {/* Background decorative elements */}
@@ -105,7 +108,7 @@ export default function HomePage() {
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-accent/5 rounded-full blur-3xl"></div>
-        </div>
+            </div>
 
         <div className="container mx-auto px-4 text-center relative z-10">
           <Badge variant="secondary" className="mb-8 bg-gradient-to-r from-primary to-accent text-white border-0 px-6 py-3 text-base font-semibold animate-pulse">
@@ -139,7 +142,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {heroImages.map((image, index) => (
               <div key={index} className="relative h-80 rounded-3xl overflow-hidden group shadow-2xl hover:shadow-primary/25 transition-all duration-500">
-                <Image
+              <Image
                   src={image.src}
                   alt={image.alt}
                   fill
@@ -152,27 +155,24 @@ export default function HomePage() {
                   <Badge variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0">
                     {image.category}
                   </Badge>
-                </div>
+              </div>
 
                 {/* Price */}
                 <div className="absolute top-4 right-4">
                   <Badge variant="secondary" className="bg-primary text-white border-0 font-semibold">
                     {image.price}
                   </Badge>
-                </div>
+            </div>
 
                 <div className="absolute bottom-6 left-6 text-white">
                   <h3 className="font-heading font-bold text-2xl mb-2">{image.title}</h3>
                   <p className="text-lg opacity-90 font-light">{image.subtitle}</p>
-                </div>
               </div>
+            </div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* Special Offers Carousel */}
-      <SpecialOffersCarousel />
 
       {/* Features Section */}
       <section className="py-32 bg-gradient-to-br from-card/50 to-background relative overflow-hidden">
@@ -199,16 +199,16 @@ export default function HomePage() {
                 <CardHeader className="text-center p-10">
                   <div className="h-20 w-20 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:from-primary/30 group-hover:to-accent/30 transition-all duration-500 transform group-hover:scale-110">
                     <feature.icon className="h-10 w-10 text-primary" />
-                  </div>
+                </div>
                   <CardTitle className="font-heading text-2xl mb-4">{feature.title}</CardTitle>
                   <CardDescription className="text-base leading-relaxed mb-6 text-muted-foreground">
                     {feature.description}
-                  </CardDescription>
+                </CardDescription>
                   <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-semibold">
                     {feature.highlight}
                   </Badge>
-                </CardHeader>
-              </Card>
+              </CardHeader>
+            </Card>
             ))}
           </div>
         </div>
@@ -277,7 +277,7 @@ export default function HomePage() {
                     <CardDescription className="text-base mb-6 leading-relaxed text-muted-foreground">{collection.description}</CardDescription>
                     <Button variant="outline" size="lg" className="w-full bg-transparent border-2 hover:bg-primary hover:text-white transition-all duration-300 transform group-hover:scale-105" asChild>
                       <Link href={`/collections/${collection.slug}`}>
-                        Explore Collection
+                      Explore Collection
                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </Button>

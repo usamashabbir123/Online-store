@@ -3,7 +3,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs').promises;
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, query } = require('express-validator');
 const prisma = require('../lib/db');
 
 const router = express.Router();

@@ -56,7 +56,7 @@ enum PaymentStatus {
   disputed
 }
 
-enum PaymentMethod {
+enum PaymentMethodType {
   stripe_card
   stripe_bank_transfer
   paypal
@@ -200,7 +200,8 @@ model Address {
 
   // Relations
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders      Order[]
+  shippingOrders Order[] @relation("OrderShippingAddress")
+  billingOrders  Order[] @relation("OrderBillingAddress")
 
   @@map("addresses")
   @@index([userId])
@@ -344,8 +345,8 @@ model Order {
 
   // Relations
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shippingAddress Address       @relation(fields: [shippingAddressId], references: [id])
-  billingAddress  Address       @relation(fields: [billingAddressId], references: [id])
+  shippingAddress Address       @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddress  Address       @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
   items           OrderItem[]
   payments        Payment[]
 
@@ -405,7 +406,7 @@ model Payment {
 model PaymentMethod {
   id              String        @id @default(cuid())
   userId          String
-  type            PaymentMethod
+  methodType      PaymentMethodType
   name            String        // e.g., "Visa ending in 1234"
   last4           String?
   brand           String?       // visa, mastercard, etc.
@@ -423,7 +424,7 @@ model PaymentMethod {
 
   @@map("payment_methods")
   @@index([userId])
-  @@index([type])
+  @@index([methodType])
   @@index([isDefault])
 }
 

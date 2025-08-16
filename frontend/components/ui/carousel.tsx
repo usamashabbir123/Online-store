@@ -1,7 +1,9 @@
 "use client"
 
 import * as React from "react"
-import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react"
+import useEmblaCarousel, {
+  type UseEmblaCarouselType,
+} from "embla-carousel-react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -101,16 +103,14 @@ const Carousel = React.forwardRef<
         return
       }
 
-      if (setApi) {
-        setApi(api)
-      }
+      setApi?.(api)
       onSelect(api)
       api.on("select", onSelect)
       api.on("reInit", onSelect)
 
       return () => {
-        api?.off("select", onSelect)
-        api?.off("reInit", onSelect)
+        api.off("select", onSelect)
+        api.off("reInit", onSelect)
       }
     }, [api, onSelect, setApi])
 
@@ -130,7 +130,7 @@ const Carousel = React.forwardRef<
       >
         <div
           ref={ref}
-          onKeyDown={handleKeyDown}
+          onKeyDownCapture={handleKeyDown}
           className={cn("relative", className)}
           role="region"
           aria-roledescription="carousel"
