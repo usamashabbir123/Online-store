@@ -1,0 +1,46 @@
+stages:
+  - build
+  - tag
+  - deploy
+
+variables:
+  IMAGE_NAME: "docker.io/yourdockerhubusername/my-app"
+
+before_script:
+  # Install ssh-agent if needed
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  # Start ssh-agent and add private key
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+
+build:
+  stage: build
+  script:
+    - echo "Building Docker image..."
+    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+  only:
+    - main  # Trigger only on main branch
+
+create_tag:
+  stage: tag
+  script:
+    - echo "Creating Git tag..."
+    - git config --global user.email "ci@example.com"
+    - git config --global user.name "GitLab CI"
+    - git remote set-url origin https://oauth2:$GITLAB_TOKEN@gitlab.com/$CI_PROJECT_PATH.git
+    - git tag v1.0.$CI_PIPELINE_IID
+    - git push origin --tags
+  only:
+    - main  # Trigger only on main branch
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying to Kubernetes..."
+    - mkdir -p ~/.kube
+    - echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
+    - kubectl set image deployment/my-app my-app=$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+  only:
+    - tags  # Deploy only on tags
