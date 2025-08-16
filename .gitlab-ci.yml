@@ -1,46 +1,38 @@
+# .gitlab-ci.yml
+
 stages:
   - build
-  - tag
-  - deploy
+  - push
 
 variables:
-  IMAGE_NAME: "docker.io/yourdockerhubusername/my-app"
+  IMAGE_NAME: "usamashabbir4321/k8s-nginx-image"
 
-before_script:
-  # Install ssh-agent if needed
-  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-  # Start ssh-agent and add private key
-  - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-
+# -------------------------------
+# Build Docker image
+# -------------------------------
 build:
   stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
   script:
     - echo "Building Docker image..."
-    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
-  only:
-    - main  # Trigger only on main branch
+    - docker build -t $IMAGE_NAME:$CI_COMMIT_REF_NAME .
 
-create_tag:
-  stage: tag
+# -------------------------------
+# Tag & Push to Docker Hub
+# -------------------------------
+push:
+  stage: push
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
   script:
-    - echo "Creating Git tag..."
-    - git config --global user.email "ci@example.com"
-    - git config --global user.name "GitLab CI"
-    - git remote set-url origin https://oauth2:$GITLAB_TOKEN@gitlab.com/$CI_PROJECT_PATH.git
-    - git tag v1.0.$CI_PIPELINE_IID
-    - git push origin --tags
+    - echo "Logging in to Docker Hub..."
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - echo "Tagging image..."
+    - docker tag $IMAGE_NAME:$CI_COMMIT_REF_NAME $IMAGE_NAME:$CI_COMMIT_TAG
+    - echo "Pushing image to Docker Hub..."
+    - docker push $IMAGE_NAME:$CI_COMMIT_TAG
   only:
-    - main  # Trigger only on main branch
-
-deploy:
-  stage: deploy
-  script:
-    - echo "Deploying to Kubernetes..."
-    - mkdir -p ~/.kube
-    - echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
-    - kubectl set image deployment/my-app my-app=$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
-  only:
-    - tags  # Deploy only on tags
+    - tags
