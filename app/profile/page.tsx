@@ -14,6 +14,10 @@ import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+  })
   const router = useRouter()
 
   useEffect(() => {
@@ -22,8 +26,27 @@ export default function ProfilePage() {
       router.push("/auth/signin")
       return
     }
-    setUser(JSON.parse(userData))
+    const parsedUser = JSON.parse(userData)
+    setUser(parsedUser)
+    setFormData({
+      name: parsedUser.name || "",
+      email: parsedUser.email || "",
+    })
   }, [router])
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleSave = () => {
+    const updatedUser = { ...user, name: formData.name }
+    setUser(updatedUser)
+    localStorage.setItem("user", JSON.stringify(updatedUser))
+    // You could add a toast notification here
+  }
 
   if (!user) {
     return <div>Loading...</div>
@@ -80,14 +103,18 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Full Name</Label>
-                      <Input id="name" value={user.name || ""} />
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
-                      <Input id="email" value={user.email || ""} disabled />
+                      <Input id="email" value={formData.email} disabled />
                     </div>
                   </div>
-                  <Button>Save Changes</Button>
+                  <Button onClick={handleSave}>Save Changes</Button>
                 </CardContent>
               </Card>
             </TabsContent>
