@@ -1,25 +1,25 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Playfair_Display, Source_Sans_3 as Source_Sans_Pro } from "next/font/google"
+import { Space_Grotesk, DM_Sans } from "next/font/google"
 import "./globals.css"
 
-const playfairDisplay = Playfair_Display({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-playfair",
+  variable: "--font-space-grotesk",
   weight: ["400", "700"],
 })
 
-const sourceSansPro = Source_Sans_Pro({
+const dmSans = DM_Sans({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-source-sans",
-  weight: ["400", "600"],
+  variable: "--font-dm-sans",
+  weight: ["400", "500", "600"],
 })
 
 export const metadata: Metadata = {
-  title: "MarketHub - Premium Multi-Vendor Marketplace",
-  description: "Connect buyers and sellers in a trusted, premium marketplace platform",
+  title: "StyleHub - Ultra-Modern Fashion Marketplace",
+  description: "Discover the latest fashion trends for men, women, and children in our premium clothing marketplace",
   generator: "v0.app",
 }
 
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${playfairDisplay.variable} ${sourceSansPro.variable}`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   )

@@ -1,24 +1,27 @@
-// Dummy users for testing different roles and functionality
 export const dummyUsers = {
   admin: {
-    email: "admin@markethub.com",
+    email: "admin@stylehub.com",
     password: "admin123",
-    name: "Admin User",
+    name: "StyleHub Admin",
     role: "admin",
   },
-  customer: {
+  customer1: {
     email: "customer@example.com",
     password: "customer123",
-    name: "John Customer",
+    name: "Emma Johnson",
     role: "customer",
   },
-  seller: {
-    email: "seller@example.com",
-    password: "seller123",
-    name: "Jane Seller",
-    role: "seller",
-    storeId: "tech-innovations-hub",
-    storeName: "Tech Innovations Hub",
+  customer2: {
+    email: "john@example.com",
+    password: "customer123",
+    name: "John Smith",
+    role: "customer",
+  },
+  customer3: {
+    email: "sarah@example.com",
+    password: "customer123",
+    name: "Sarah Wilson",
+    role: "customer",
   },
 }
 

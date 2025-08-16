@@ -4,40 +4,40 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated color tokens to match design brief with green primary and modern palette */
-  --background: oklch(1 0 0); /* #ffffff - Clean white */
-  --foreground: oklch(0.25 0 0); /* #374151 - Dark gray for text */
-  --card: oklch(1 0 0); /* #ffffff - Card background */
-  --card-foreground: oklch(0.25 0 0); /* #374151 - Text inside cards */
-  --popover: oklch(0.98 0.02 142); /* #f0fdf4 - Soft off-white */
-  --popover-foreground: oklch(0.25 0 0); /* #374151 - Text for popovers */
-  --primary: oklch(0.45 0.15 142); /* #15803d - Vibrant green */
-  --primary-foreground: oklch(1 0 0); /* #ffffff - White text on primary */
-  --secondary: oklch(0.25 0 0); /* #374151 - Dark gray for secondary actions */
-  --secondary-foreground: oklch(1 0 0); /* #ffffff - White text on secondary */
-  --muted: oklch(0.98 0.02 142); /* #f0fdf4 - Muted background */
-  --muted-foreground: oklch(0.45 0 0); /* #6b7280 - Muted text */
-  --accent: oklch(0.75 0.15 120); /* #84cc16 - Bright accent green */
-  --accent-foreground: oklch(1 0 0); /* #ffffff - White text on accent */
-  --destructive: oklch(0.55 0.22 25); /* #dc2626 - Red for errors */
-  --destructive-foreground: oklch(1 0 0); /* #ffffff - White text on destructive */
-  --border: oklch(0.92 0 0); /* #e5e7eb - Light border */
-  --input: oklch(0.98 0 0); /* #f9fafb - Input background */
-  --ring: oklch(0.45 0.15 142 / 0.5); /* Green ring with transparency */
-  --chart-1: oklch(0.45 0.15 142); /* Primary green for charts */
-  --chart-2: oklch(0.75 0.15 120); /* Accent green for charts */
-  --chart-3: oklch(0.55 0.22 25); /* Red for charts */
-  --chart-4: oklch(0.65 0.18 85); /* Orange for charts */
-  --chart-5: oklch(0.15 0 0); /* Dark for charts */
+  /* Updated color tokens to match ultra-modern design brief with cyan and orange palette */
+  --background: #ffffff; /* Clean white background */
+  --foreground: #475569; /* Dark slate for main text */
+  --card: #ecfeff; /* Light cyan for product cards */
+  --card-foreground: #164e63; /* Cyan-800 for card text */
+  --popover: #ffffff; /* White for popover elements */
+  --popover-foreground: #475569; /* Dark slate for popover text */
+  --primary: #164e63; /* Cyan-800 for primary actions */
+  --primary-foreground: #ffffff; /* White text on primary */
+  --secondary: #ea580c; /* Orange-600 for secondary actions */
+  --secondary-foreground: #ffffff; /* White text on secondary */
+  --muted: #fefce8; /* Light yellow for muted elements */
+  --muted-foreground: #4b5563; /* Gray for muted text */
+  --accent: #ea580c; /* Orange accent color */
+  --accent-foreground: #ffffff; /* White text on accent */
+  --destructive: #ff4b4b; /* Red for destructive actions */
+  --destructive-foreground: #ffffff; /* White text on destructive */
+  --border: #d1d5db; /* Light gray borders */
+  --input: #ffffff; /* White input backgrounds */
+  --ring: rgba(22, 78, 99, 0.5); /* Cyan focus ring */
+  --chart-1: #f97316; /* Orange chart color */
+  --chart-2: #a16207; /* Yellow chart color */
+  --chart-3: #ea580c; /* Orange chart color */
+  --chart-4: #164e63; /* Cyan chart color */
+  --chart-5: #4b5563; /* Gray chart color */
   --radius: 0.5rem;
-  --sidebar: oklch(0.98 0.02 142); /* Soft off-white for sidebar */
-  --sidebar-foreground: oklch(0.25 0 0); /* Dark text in sidebar */
-  --sidebar-primary: oklch(0.45 0.15 142); /* Green for sidebar highlights */
-  --sidebar-primary-foreground: oklch(1 0 0); /* White text for primary sidebar */
-  --sidebar-accent: oklch(0.75 0.15 120); /* Accent green for sidebar */
-  --sidebar-accent-foreground: oklch(1 0 0); /* White text for sidebar accents */
-  --sidebar-border: oklch(0.92 0 0); /* Light border for sidebar */
-  --sidebar-ring: oklch(0.45 0.15 142 / 0.5); /* Green ring for sidebar focus */
+  --sidebar: #ffffff; /* White sidebar */
+  --sidebar-foreground: #475569; /* Dark slate sidebar text */
+  --sidebar-primary: #ea580c; /* Orange sidebar primary */
+  --sidebar-primary-foreground: #ffffff; /* White sidebar primary text */
+  --sidebar-accent: #164e63; /* Cyan sidebar accent */
+  --sidebar-accent-foreground: #ffffff; /* White sidebar accent text */
+  --sidebar-border: #d1d5db; /* Light gray sidebar borders */
+  --sidebar-ring: rgba(22, 78, 99, 0.5); /* Cyan sidebar focus ring */
 }
 
 .dark {
@@ -113,9 +113,10 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Added custom font variables for Playfair Display and Source Sans Pro */
-  --font-heading: "Playfair Display", serif;
-  --font-body: "Source Sans Pro", sans-serif;
+  /* Updated font variables for Space Grotesk and DM Sans */
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Space Grotesk", ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 @layer base {
@@ -126,12 +127,13 @@
     @apply bg-background text-foreground font-sans;
   }
 
-  /* Added typography classes for design system */
+  /* Updated typography classes for modern design system */
   .font-heading {
-    font-family: var(--font-heading);
+    font-family: "Space Grotesk", ui-serif, Georgia, serif;
+    font-weight: 700;
   }
 
   .font-body {
-    font-family: var(--font-body);
+    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   }
 }
