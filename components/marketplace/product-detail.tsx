@@ -25,10 +25,10 @@ export function ProductDetail({ productId }: ProductDetailProps) {
     rating: 4.5,
     reviewCount: 234,
     images: [
-      "/wireless-headphones-front.png",
-      "/wireless-headphones-side.png",
-      "/wireless-headphones-back.png",
-      "/wireless-headphones-case.png",
+      "/wireless-headphones.png",
+      "/wireless-headphones.png",
+      "/wireless-headphones.png",
+      "/wireless-headphones.png",
     ],
     store: {
       name: "TechStore Pro",
@@ -58,6 +58,33 @@ export function ProductDetail({ productId }: ProductDetailProps) {
   }
 
   const discountPercentage = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+
+  const addToCart = () => {
+    const cartData = localStorage.getItem("cart")
+    const cart = cartData ? JSON.parse(cartData) : []
+
+    const existingItem = cart.find((item: any) => item.id === product.id)
+
+    if (existingItem) {
+      existingItem.quantity += quantity
+    } else {
+      cart.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image: product.images[0],
+        store: product.store.name,
+        category: "Electronics",
+        quantity: quantity,
+      })
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart))
+
+    // Trigger a custom event to update cart count in header
+    window.dispatchEvent(new Event("cartUpdated"))
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -179,7 +206,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
             </div>
 
             <div className="flex gap-3">
-              <Button className="flex-1" size="lg" disabled={!product.inStock}>
+              <Button className="flex-1" size="lg" disabled={!product.inStock} onClick={addToCart}>
                 <ShoppingCart className="h-5 w-5 mr-2" />
                 Add to Cart
               </Button>

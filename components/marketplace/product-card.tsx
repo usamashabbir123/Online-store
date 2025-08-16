@@ -32,6 +32,33 @@ export function ProductCard({ product }: ProductCardProps) {
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0
 
+  const addToCart = () => {
+    const cartData = localStorage.getItem("cart")
+    const cart = cartData ? JSON.parse(cartData) : []
+
+    const existingItem = cart.find((item: any) => item.id === product.id)
+
+    if (existingItem) {
+      existingItem.quantity += 1
+    } else {
+      cart.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image: product.image,
+        store: product.store,
+        category: "General",
+        quantity: 1,
+      })
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart))
+
+    // Trigger a custom event to update cart count in header
+    window.dispatchEvent(new Event("cartUpdated"))
+  }
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
       <div className="relative">
@@ -111,7 +138,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Add to Cart Button */}
-          <Button className="w-full mt-3" size="sm">
+          <Button className="w-full mt-3" size="sm" onClick={addToCart}>
             <ShoppingCart className="h-4 w-4 mr-2" />
             Add to Cart
           </Button>

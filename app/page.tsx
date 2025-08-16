@@ -30,10 +30,12 @@ export default function HomePage() {
             </nav>
 
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm">
-                Sign In
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/auth/signin">Sign In</Link>
               </Button>
-              <Button size="sm">Get Started</Button>
+              <Button size="sm" asChild>
+                <Link href="/auth/signup">Get Started</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -58,13 +60,17 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="text-lg px-8">
-              Browse Marketplace
-              <ArrowRight className="ml-2 h-5 w-5" />
+            <Button size="lg" className="text-lg px-8" asChild>
+              <Link href="/marketplace">
+                Browse Marketplace
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 bg-transparent">
-              <Store className="mr-2 h-5 w-5" />
-              Start Your Store
+            <Button variant="outline" size="lg" className="text-lg px-8 bg-transparent" asChild>
+              <Link href="/auth/signup">
+                <Store className="mr-2 h-5 w-5" />
+                Start Your Store
+              </Link>
             </Button>
           </div>
 
@@ -163,15 +169,16 @@ export default function HomePage() {
             Join thousands of successful sellers and millions of happy customers on MarketHub
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="secondary" size="lg" className="text-lg px-8">
-              Browse Products
+            <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
+              <Link href="/marketplace">Browse Products</Link>
             </Button>
             <Button
               variant="outline"
               size="lg"
               className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary bg-transparent"
+              asChild
             >
-              Start Selling Today
+              <Link href="/auth/signup">Start Selling Today</Link>
             </Button>
           </div>
         </div>

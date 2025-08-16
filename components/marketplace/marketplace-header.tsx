@@ -5,10 +5,41 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ShoppingBag, Search, ShoppingCart, User, Heart, Menu } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export function MarketplaceHeader() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [cartCount, setCartCount] = useState(0)
+  const [user, setUser] = useState<any>(null)
+
+  const updateCartCount = () => {
+    const cartData = localStorage.getItem("cart")
+    if (cartData) {
+      const cart = JSON.parse(cartData)
+      setCartCount(cart.reduce((total: number, item: any) => total + item.quantity, 0))
+    } else {
+      setCartCount(0)
+    }
+  }
+
+  useEffect(() => {
+    // Load initial data
+    updateCartCount()
+    const userData = localStorage.getItem("user")
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+
+    const handleCartUpdate = () => {
+      updateCartCount()
+    }
+
+    window.addEventListener("cartUpdated", handleCartUpdate)
+
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdate)
+    }
+  }, [])
 
   return (
     <header className="border-b border-border bg-card sticky top-0 z-50">
@@ -41,19 +72,33 @@ export function MarketplaceHeader() {
               Wishlist
             </Button>
 
-            <Button variant="ghost" size="sm" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              <Badge
-                variant="destructive"
-                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-              >
-                3
-              </Badge>
+            <Button variant="ghost" size="sm" className="relative" asChild>
+              <Link href="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {cartCount}
+                  </Badge>
+                )}
+              </Link>
             </Button>
 
-            <Button variant="ghost" size="sm">
-              <User className="h-5 w-5" />
-            </Button>
+            {user ? (
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/profile">
+                  <User className="h-5 w-5" />
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/auth/signin">
+                  <User className="h-5 w-5" />
+                </Link>
+              </Button>
+            )}
 
             <Button variant="ghost" size="sm" className="md:hidden">
               <Menu className="h-5 w-5" />
