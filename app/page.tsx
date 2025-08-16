@@ -14,7 +14,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShoppingBag className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-heading font-bold text-foreground">MarketHub</h1>
+              <h1 className="text-2xl font-heading font-bold text-foreground">FashionHub</h1>
             </div>
 
             <nav className="hidden md:flex items-center gap-6">
@@ -45,31 +45,31 @@ export default function HomePage() {
       <section className="py-20 bg-gradient-to-br from-muted/30 to-background">
         <div className="container mx-auto px-4 text-center">
           <Badge variant="secondary" className="mb-6">
-            Trusted by 10,000+ sellers worldwide
+            Trusted by 10,000+ fashion sellers worldwide
           </Badge>
 
           <h1 className="text-5xl md:text-6xl font-heading font-bold text-foreground mb-6 leading-tight">
             Your Premium
-            <span className="text-primary block">Marketplace</span>
+            <span className="text-primary block">Fashion Hub</span>
             Experience
           </h1>
 
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Connect with trusted sellers, discover unique products, and build your own store in our curated marketplace
-            ecosystem.
+            Discover the latest fashion trends for men, women, and children. Connect with trusted clothing brands and
+            build your own fashion store in our curated marketplace.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button size="lg" className="text-lg px-8" asChild>
               <Link href="/marketplace">
-                Browse Marketplace
+                Browse Fashion
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button variant="outline" size="lg" className="text-lg px-8 bg-transparent" asChild>
               <Link href="/auth/signup">
                 <Store className="mr-2 h-5 w-5" />
-                Start Your Store
+                Start Your Fashion Store
               </Link>
             </Button>
           </div>
@@ -78,7 +78,7 @@ export default function HomePage() {
           <div className="max-w-2xl mx-auto relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
             <Input
-              placeholder="Search for products, brands, or stores..."
+              placeholder="Search for clothing, brands, or fashion stores..."
               className="pl-12 pr-4 py-4 text-lg bg-card border-2 border-border focus:border-primary"
             />
             <Button className="absolute right-2 top-1/2 transform -translate-y-1/2">Search</Button>
@@ -90,9 +90,9 @@ export default function HomePage() {
       <section className="py-20 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-heading font-bold text-foreground mb-4">Why Choose MarketHub?</h2>
+            <h2 className="text-4xl font-heading font-bold text-foreground mb-4">Why Choose FashionHub?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              We provide everything you need for a successful online marketplace experience
+              We provide everything you need for a successful online fashion marketplace experience
             </p>
           </div>
 
@@ -130,15 +130,17 @@ export default function HomePage() {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-heading font-bold text-foreground mb-4">Featured Stores</h2>
-            <p className="text-xl text-muted-foreground">Discover amazing products from our top-rated sellers</p>
+            <h2 className="text-4xl font-heading font-bold text-foreground mb-4">Featured Fashion Stores</h2>
+            <p className="text-xl text-muted-foreground">
+              Discover amazing clothing from our top-rated fashion sellers
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { name: "Artisan Crafts Co.", category: "Handmade", rating: 4.9, products: 156 },
-              { name: "Tech Innovations", category: "Electronics", rating: 4.8, products: 89 },
-              { name: "Fashion Forward", category: "Clothing", rating: 4.9, products: 234 },
+              { name: "Urban Style Co.", category: "Men's Fashion", rating: 4.9, products: 156 },
+              { name: "Elegant Fashion", category: "Women's Wear", rating: 4.8, products: 289 },
+              { name: "Little Trendsetters", category: "Kids' Clothing", rating: 4.9, products: 134 },
             ].map((store, index) => (
               <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="h-48 bg-gradient-to-br from-primary/10 to-accent/10"></div>
@@ -164,13 +166,13 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-heading font-bold mb-4">Ready to Start Your Journey?</h2>
+          <h2 className="text-4xl font-heading font-bold mb-4">Ready to Start Your Fashion Journey?</h2>
           <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Join thousands of successful sellers and millions of happy customers on MarketHub
+            Join thousands of successful fashion sellers and millions of style-conscious customers on FashionHub
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
-              <Link href="/marketplace">Browse Products</Link>
+              <Link href="/marketplace">Browse Fashion</Link>
             </Button>
             <Button
               variant="outline"
@@ -178,7 +180,7 @@ export default function HomePage() {
               className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary bg-transparent"
               asChild
             >
-              <Link href="/auth/signup">Start Selling Today</Link>
+              <Link href="/auth/signup">Start Selling Fashion Today</Link>
             </Button>
           </div>
         </div>
@@ -191,29 +193,29 @@ export default function HomePage() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <ShoppingBag className="h-6 w-6 text-primary" />
-                <span className="text-lg font-heading font-bold">MarketHub</span>
+                <span className="text-lg font-heading font-bold">FashionHub</span>
               </div>
               <p className="text-muted-foreground">
-                The premium marketplace connecting quality sellers with discerning buyers.
+                The premium fashion marketplace connecting quality clothing brands with style-conscious shoppers.
               </p>
             </div>
 
             <div>
-              <h3 className="font-heading font-semibold mb-4">For Buyers</h3>
+              <h3 className="font-heading font-semibold mb-4">Shop Fashion</h3>
               <ul className="space-y-2 text-muted-foreground">
                 <li>
                   <Link href="/marketplace" className="hover:text-foreground transition-colors">
-                    Browse Products
+                    Browse Clothing
                   </Link>
                 </li>
                 <li>
                   <Link href="/categories" className="hover:text-foreground transition-colors">
-                    Categories
+                    Fashion Categories
                   </Link>
                 </li>
                 <li>
                   <Link href="/deals" className="hover:text-foreground transition-colors">
-                    Special Deals
+                    Fashion Deals
                   </Link>
                 </li>
               </ul>
@@ -263,7 +265,7 @@ export default function HomePage() {
           </div>
 
           <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 MarketHub. All rights reserved.</p>
+            <p>&copy; 2024 FashionHub. All rights reserved.</p>
           </div>
         </div>
       </footer>

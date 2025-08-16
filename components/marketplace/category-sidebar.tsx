@@ -9,20 +9,20 @@ import { Star, Filter } from "lucide-react"
 import { useState } from "react"
 
 export function CategorySidebar() {
-  const [priceRange, setPriceRange] = useState([0, 1000])
+  const [priceRange, setPriceRange] = useState([0, 500])
 
   const categories = [
-    { name: "Electronics", count: 1234 },
-    { name: "Fashion", count: 856 },
-    { name: "Home & Garden", count: 642 },
-    { name: "Sports & Outdoors", count: 423 },
-    { name: "Books & Media", count: 312 },
-    { name: "Beauty & Health", count: 289 },
-    { name: "Toys & Games", count: 156 },
-    { name: "Automotive", count: 98 },
+    { name: "Men's Clothing", count: 1234 },
+    { name: "Women's Clothing", count: 1856 },
+    { name: "Children's Clothing", count: 642 },
+    { name: "Men's Shoes", count: 423 },
+    { name: "Women's Shoes", count: 512 },
+    { name: "Kids' Shoes", count: 289 },
+    { name: "Accessories", count: 356 },
+    { name: "Activewear", count: 198 },
   ]
 
-  const brands = ["Apple", "Samsung", "Nike", "Adidas", "Sony", "Canon", "Dell", "HP"]
+  const brands = ["Nike", "Adidas", "Zara", "H&M", "Uniqlo", "Gap", "Levi's", "Calvin Klein"]
 
   return (
     <div className="space-y-6">
@@ -54,11 +54,46 @@ export function CategorySidebar() {
           <CardTitle className="font-heading">Price Range</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Slider value={priceRange} onValueChange={setPriceRange} max={1000} step={10} className="w-full" />
+          <Slider value={priceRange} onValueChange={setPriceRange} max={500} step={5} className="w-full" />
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>${priceRange[0]}</span>
             <span>${priceRange[1]}</span>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Sizes */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading">Sizes</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
+            <div key={size} className="flex items-center space-x-2">
+              <Checkbox id={`size-${size}`} />
+              <Label htmlFor={`size-${size}`} className="text-sm cursor-pointer">
+                {size}
+              </Label>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Colors */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading">Colors</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {["Black", "White", "Navy", "Gray", "Red", "Blue", "Green", "Pink"].map((color) => (
+            <div key={color} className="flex items-center space-x-2">
+              <Checkbox id={`color-${color}`} />
+              <Label htmlFor={`color-${color}`} className="text-sm cursor-pointer flex items-center gap-2">
+                <div className={`w-4 h-4 rounded-full border border-gray-300 bg-${color.toLowerCase()}-500`}></div>
+                {color}
+              </Label>
+            </div>
+          ))}
         </CardContent>
       </Card>
 

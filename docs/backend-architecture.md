@@ -1,11 +1,11 @@
-# MarketHub Backend Architecture
+# FashionHub Backend Architecture
 
 ## System Overview
 
-MarketHub is a multi-actor e-commerce platform supporting three user types:
-- **Customers**: Browse and purchase products
-- **Sellers**: Create stores, manage products, fulfill orders
-- **Admins**: Approve stores, manage platform, moderate content
+FashionHub is a multi-actor clothing e-commerce platform supporting three user types:
+- **Customers**: Browse and purchase clothing items for men, women, and children
+- **Sellers**: Create fashion stores, manage clothing products, fulfill orders
+- **Admins**: Approve stores, manage platform, moderate fashion content
 
 ## Architecture Diagram
 
@@ -92,7 +92,7 @@ CREATE TABLE stores (
 CREATE TYPE store_status AS ENUM ('pending', 'approved', 'rejected', 'suspended');
 \`\`\`
 
-#### Products
+#### Products (Clothing-Specific)
 \`\`\`sql
 CREATE TABLE products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -104,21 +104,79 @@ CREATE TABLE products (
   compare_price DECIMAL(10,2),
   cost_price DECIMAL(10,2),
   sku VARCHAR(100),
-  stock_quantity INTEGER DEFAULT 0,
-  low_stock_threshold INTEGER DEFAULT 5,
+  
+  -- Clothing-specific fields
+  category clothing_category NOT NULL,
+  subcategory VARCHAR(100),
+  gender gender_type NOT NULL,
+  age_group age_group_type NOT NULL,
+  brand VARCHAR(100),
+  material VARCHAR(255),
+  care_instructions TEXT,
+  country_of_origin VARCHAR(100),
+  
+  -- Size and inventory management
+  has_variants BOOLEAN DEFAULT TRUE,
   track_quantity BOOLEAN DEFAULT TRUE,
   status product_status DEFAULT 'active',
-  category VARCHAR(100),
-  brand VARCHAR(100),
-  weight DECIMAL(8,3),
-  dimensions JSONB, -- {length, width, height}
+  
+  -- SEO and display
   images JSONB, -- array of image URLs
+  size_chart_url VARCHAR(500),
+  model_measurements JSONB,
+  
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(store_id, slug)
 );
 
+CREATE TYPE clothing_category AS ENUM (
+  'tops', 'bottoms', 'dresses', 'outerwear', 'underwear', 
+  'sleepwear', 'activewear', 'swimwear', 'shoes', 'accessories',
+  'suits', 'formal_wear', 'uniforms'
+);
+
+CREATE TYPE gender_type AS ENUM ('men', 'women', 'unisex');
+CREATE TYPE age_group_type AS ENUM ('adult', 'teen', 'child', 'toddler', 'baby');
 CREATE TYPE product_status AS ENUM ('active', 'draft', 'archived');
+\`\`\`
+
+#### Product Variants (Sizes & Colors)
+\`\`\`sql
+CREATE TABLE product_variants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES products(id),
+  sku VARCHAR(100) UNIQUE,
+  size VARCHAR(20) NOT NULL,
+  color VARCHAR(50) NOT NULL,
+  color_hex VARCHAR(7), -- hex color code
+  price_adjustment DECIMAL(8,2) DEFAULT 0,
+  stock_quantity INTEGER DEFAULT 0,
+  low_stock_threshold INTEGER DEFAULT 5,
+  weight DECIMAL(8,3),
+  dimensions JSONB, -- {length, width, height} for shipping
+  image_urls JSONB, -- variant-specific images
+  status variant_status DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(product_id, size, color)
+);
+
+CREATE TYPE variant_status AS ENUM ('active', 'inactive', 'discontinued');
+\`\`\`
+
+#### Size Charts
+\`\`\`sql
+CREATE TABLE size_charts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id),
+  name VARCHAR(255) NOT NULL,
+  category clothing_category NOT NULL,
+  gender gender_type NOT NULL,
+  measurements JSONB NOT NULL, -- size measurements data
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
 \`\`\`
 
 #### Orders
@@ -244,14 +302,29 @@ PUT    /api/admin/stores/:id/approve    # Approve store
 PUT    /api/admin/stores/:id/reject     # Reject store
 \`\`\`
 
-### Product Management
+### Product Management (Clothing-Specific)
 \`\`\`
-GET    /api/products               # List products (with filters)
-GET    /api/products/:id           # Get product details
-POST   /api/products               # Create product (seller only)
-PUT    /api/products/:id           # Update product (seller only)
-DELETE /api/products/:id           # Delete product (seller only)
-POST   /api/products/:id/images    # Upload product images
+GET    /api/products               # List clothing products (with fashion filters)
+GET    /api/products/:id           # Get clothing product details
+POST   /api/products               # Create clothing product (seller only)
+PUT    /api/products/:id           # Update clothing product (seller only)
+DELETE /api/products/:id           # Delete clothing product (seller only)
+
+# Clothing-specific endpoints
+GET    /api/products/:id/variants  # Get product size/color variants
+POST   /api/products/:id/variants  # Add product variant
+PUT    /api/products/:id/variants/:variantId  # Update variant
+DELETE /api/products/:id/variants/:variantId  # Delete variant
+
+GET    /api/products/categories    # Get clothing categories
+GET    /api/products/sizes         # Get available sizes by category
+GET    /api/products/colors        # Get available colors
+GET    /api/products/brands        # Get clothing brands
+
+# Size chart management
+GET    /api/size-charts            # Get size charts
+POST   /api/size-charts            # Create size chart (seller only)
+PUT    /api/size-charts/:id        # Update size chart (seller only)
 \`\`\`
 
 ### Order Management
@@ -560,4 +633,66 @@ STRIPE_SECRET_KEY=sk_live_...
 6. Deploy to production (with approval)
 7. Run smoke tests
 
-This architecture provides a solid foundation for building a scalable, secure multi-vendor marketplace platform.
+## Fashion-Specific Features
+
+### Size and Fit Recommendations
+- Size chart integration
+- Fit predictor based on customer measurements
+- Size conversion between brands
+- Customer fit feedback system
+
+### Fashion Search & Discovery
+- Visual search capabilities
+- Style-based recommendations
+- Seasonal collections
+- Trend-based categorization
+- Color and pattern matching
+
+### Inventory Management for Fashion
+- Size/color variant tracking
+- Seasonal inventory planning
+- Pre-order management for new collections
+- Automatic reorder points by size popularity
+
+### Fashion Analytics
+- Size popularity tracking
+- Color trend analysis
+- Seasonal sales patterns
+- Return rate by size/fit issues
+- Customer size preference learning
+
+## Clothing-Specific Validation Rules
+
+### Product Validation
+\`\`\`javascript
+const clothingProductSchema = {
+  name: { required: true, maxLength: 255 },
+  category: { required: true, enum: clothingCategories },
+  gender: { required: true, enum: ['men', 'women', 'unisex'] },
+  age_group: { required: true, enum: ['adult', 'teen', 'child', 'toddler', 'baby'] },
+  material: { required: true, maxLength: 255 },
+  care_instructions: { required: true },
+  variants: {
+    required: true,
+    minItems: 1,
+    items: {
+      size: { required: true },
+      color: { required: true },
+      stock_quantity: { required: true, min: 0 }
+    }
+  }
+};
+\`\`\`
+
+### Size Standardization
+\`\`\`javascript
+const sizeStandards = {
+  'tops': ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
+  'bottoms': ['24', '26', '28', '30', '32', '34', '36', '38', '40', '42'],
+  'shoes': ['5', '5.5', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11', '11.5', '12'],
+  'children': ['2T', '3T', '4T', '5T', '6', '7', '8', '10', '12', '14', '16'],
+  'baby': ['0-3M', '3-6M', '6-9M', '9-12M', '12-18M', '18-24M']
+};
+\`\`\`
+
+This architecture provides a comprehensive foundation for building a scalable, fashion-focused marketplace platform with proper clothing inventory management, size/color variants, and fashion-specific search capabilities.
