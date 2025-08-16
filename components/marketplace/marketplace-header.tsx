@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingBag, Search, ShoppingCart, User, Heart, Menu } from "lucide-react"
+import { ShoppingBag, Search, ShoppingCart, User, Heart, Menu, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 
@@ -20,6 +20,14 @@ export function MarketplaceHeader() {
     } else {
       setCartCount(0)
     }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("user")
+    localStorage.removeItem("cart")
+    setUser(null)
+    setCartCount(0)
+    window.location.href = "/"
   }
 
   useEffect(() => {
@@ -87,15 +95,23 @@ export function MarketplaceHeader() {
             </Button>
 
             {user ? (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/profile">
-                  <User className="h-5 w-5" />
-                </Link>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/profile">
+                    <User className="h-5 w-5 mr-2" />
+                    Profile
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-5 w-5 mr-2" />
+                  Logout
+                </Button>
+              </div>
             ) : (
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/auth/signin">
-                  <User className="h-5 w-5" />
+                  <User className="h-5 w-5 mr-2" />
+                  Sign In
                 </Link>
               </Button>
             )}
