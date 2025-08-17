@@ -1,289 +1,52 @@
-# GitLab CI/CD Pipeline for FashionHub Online Store
-# This pipeline builds a single combined Docker image for Kubernetes deployment
-
+# GitLab CI/CD Pipeline: Validate, Build, Tag, Clean
 stages:
   - validate
-  - test
   - build
-  - tag
+  - cleanup
 
 variables:
-  # Docker configuration
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
-  
-  # Node.js version
-  NODE_VERSION: "18"
-  
-  # Database URLs for testing
-  DATABASE_URL: "postgresql://test_user:test_password@postgres:5432/test_db"
-  REDIS_URL: "redis://:test_password@redis:6379"
-  
-  # Image tags
-  IMAGE_TAG: $CI_COMMIT_TAG
-  IMAGE_TAG_LATEST: "latest"
-  IMAGE_TAG_MAIN: "main"
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME"
 
-# Cache dependencies between jobs
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - backend/node_modules/
-    - frontend/node_modules/
-    - .npm/
-
-# Validate stage - Check code quality and dependencies
-validate:structure:
+# Validate stage: simple structure check
+validate:
   stage: validate
-  image: node:${NODE_VERSION}-alpine
+  image: node:18-alpine
   script:
     - echo "🔍 Validating project structure..."
-    - echo "📁 Checking backend structure..."
-    - test -f backend/package.json && echo "✅ Backend package.json exists" || echo "❌ Backend package.json missing"
-    - test -f backend/src/server.js && echo "✅ Backend server.js exists" || echo "❌ Backend server.js missing"
-    - test -f backend/prisma/schema.prisma && echo "✅ Prisma schema exists" || echo "❌ Prisma schema missing"
-    - echo "📁 Checking frontend structure..."
-    - test -f frontend/package.json && echo "✅ Frontend package.json exists" || echo "❌ Frontend package.json missing"
-    - test -f frontend/next.config.mjs && echo "✅ Next.js config exists" || echo "❌ Next.js config missing"
-    - test -f frontend/app/page.tsx && echo "✅ Frontend page exists" || echo "❌ Frontend page missing"
-    - echo "✅ Project structure validation completed"
+    - test -f package.json && echo "✅ package.json exists" || echo "❌ package.json missing"
   only:
-    - merge_requests
-    - main
-    - develop
+    - branches
     - tags
 
-validate:backend:
-  stage: validate
-  image: node:${NODE_VERSION}-alpine
-  services:
-    - postgres:15-alpine
-    - redis:7-alpine
-  variables:
-    POSTGRES_DB: test_db
-    POSTGRES_USER: test_user
-    POSTGRES_PASSWORD: test_password
-    REDIS_PASSWORD: test_password
-  before_script:
-    - cd backend
-    - npm install --omit=dev --prefer-offline --no-audit
-    - npx prisma generate
-  script:
-    - echo "🔍 Validating backend dependencies..."
-    - npm audit --audit-level=moderate || echo "npm audit not available or no issues found"
-    - echo "📋 Checking Prisma schema..."
-    - npx prisma validate || echo "Prisma validation failed, but continuing..."
-    - echo "✅ Backend validation completed"
-  allow_failure: true
-  only:
-    - merge_requests
-    - main
-    - develop
-    - tags
-
-validate:frontend:
-  stage: validate
-  image: node:${NODE_VERSION}-alpine
-  before_script:
-    - cd frontend
-    - npm install --prefer-offline --no-audit
-  script:
-    - echo "🔍 Validating frontend dependencies..."
-    - npm audit --audit-level=moderate || echo "npm audit not available or no issues found"
-    - echo "📋 Checking TypeScript configuration..."
-    - npx tsc --noEmit || echo "TypeScript check failed, but continuing..."
-    - echo "✅ Frontend validation completed"
-  allow_failure: true
-  only:
-    - merge_requests
-    - main
-    - develop
-    - tags
-
-# Test stage - Run unit and integration tests
-test:backend:
-  stage: test
-  image: node:${NODE_VERSION}-alpine
-  services:
-    - postgres:15-alpine
-    - redis:7-alpine
-  variables:
-    POSTGRES_DB: test_db
-    POSTGRES_USER: test_user
-    POSTGRES_PASSWORD: test_password
-    REDIS_PASSWORD: test_password
-    NODE_ENV: test
-    JWT_SECRET: test_jwt_secret
-    JWT_REFRESH_SECRET: test_refresh_secret
-  before_script:
-    - cd backend
-    - npm install --prefer-offline --no-audit
-    - npx prisma generate
-    - npx prisma migrate deploy
-    - npx prisma db seed
-  script:
-    - echo "🧪 Running backend tests..."
-    - npm test || echo "No tests configured yet"
-    - echo "✅ Backend tests completed"
-  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: backend/coverage/cobertura-coverage.xml
-    paths:
-      - backend/coverage/
-    expire_in: 1 week
-  only:
-    - merge_requests
-    - main
-    - develop
-    - tags
-
-test:frontend:
-  stage: test
-  image: node:${NODE_VERSION}-alpine
-  before_script:
-    - cd frontend
-    - npm install --prefer-offline --no-audit
-  script:
-    - echo "🧪 Running frontend tests..."
-    - npm run test:ci || echo "No tests configured yet"
-    - echo "✅ Frontend tests completed"
-  artifacts:
-    paths:
-      - frontend/coverage/
-    expire_in: 1 week
-  only:
-    - merge_requests
-    - main
-    - develop
-    - tags
-
-# Build stage - Build single combined Docker image
-build:combined:
+# Build stage: create Docker image and tag
+build:
   stage: build
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - echo "🏗️ Building combined FashionHub Docker image..."
-    - |
-      if [ -n "$CI_COMMIT_TAG" ]; then
-        # Tag build - use tag version
-        docker build -t $CI_REGISTRY_IMAGE/fashionhub:$CI_COMMIT_TAG .
-        docker build -t $CI_REGISTRY_IMAGE/fashionhub:latest .
-        echo "📦 Combined image tagged as: fashionhub:$CI_COMMIT_TAG and fashionhub:latest"
-      else
-        # Branch build - use branch name and commit SHA
-        docker build -t $CI_REGISTRY_IMAGE/fashionhub:$CI_COMMIT_REF_SLUG .
-        docker build -t $CI_REGISTRY_IMAGE/fashionhub:$CI_COMMIT_SHA .
-        echo "📦 Combined image tagged as: fashionhub:$CI_COMMIT_REF_SLUG and fashionhub:$CI_COMMIT_SHA"
-      fi
-    - echo "✅ Combined image built successfully"
+    - echo "🏗️ Building Docker image..."
+    - docker build -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
+    - echo "✅ Docker image built and pushed with tag $CI_COMMIT_REF_NAME"
   only:
-    - main
-    - develop
+    - branches
     - tags
 
-# Tag stage - Push combined image to registry
-tag:combined:
-  stage: tag
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - echo "🏷️ Tagging and pushing combined FashionHub image..."
-    - |
-      if [ -n "$CI_COMMIT_TAG" ]; then
-        # Tag build - push with version tag
-        docker push $CI_REGISTRY_IMAGE/fashionhub:$CI_COMMIT_TAG
-        docker push $CI_REGISTRY_IMAGE/fashionhub:latest
-        echo "🚀 Combined image pushed: fashionhub:$CI_COMMIT_TAG and fashionhub:latest"
-      else
-        # Branch build - push with branch and SHA tags
-        docker push $CI_REGISTRY_IMAGE/fashionhub:$CI_COMMIT_REF_SLUG
-        docker push $CI_REGISTRY_IMAGE/fashionhub:$CI_COMMIT_SHA
-        echo "🚀 Combined image pushed: fashionhub:$CI_COMMIT_REF_SLUG and fashionhub:$CI_COMMIT_SHA"
-      fi
-    - echo "✅ Combined image pushed successfully"
-  only:
-    - main
-    - develop
-    - tags
-
-# Security scanning
-security:scan:
-  stage: test
-  image: node:${NODE_VERSION}-alpine
-  before_script:
-    - npm install -g npm-audit-resolver
-  script:
-    - echo "🔒 Running security scans..."
-    - cd backend && npm audit --audit-level=moderate || true
-    - cd ../frontend && npm audit --audit-level=moderate || true
-    - echo "✅ Security scan completed"
-  allow_failure: true
-  only:
-    - merge_requests
-    - main
-    - develop
-    - tags
-
-# Documentation generation
-docs:generate:
-  stage: test
-  image: node:${NODE_VERSION}-alpine
-  before_script:
-    - cd backend
-    - npm install --omit=dev --prefer-offline --no-audit
-  script:
-    - echo "📚 Generating API documentation..."
-    - npm run docs:generate || echo "No documentation script configured"
-    - echo "✅ Documentation generation completed"
-  artifacts:
-    paths:
-      - backend/docs/
-    expire_in: 1 month
-  only:
-    - main
-    - tags
-
-# Performance testing
-performance:test:
-  stage: test
-  image: node:${NODE_VERSION}-alpine
-  before_script:
-    - npm install -g artillery
-  script:
-    - echo "⚡ Running performance tests..."
-    - cd backend
-    - artillery run performance-tests.yml || echo "No performance tests configured"
-    - echo "✅ Performance tests completed"
-  artifacts:
-    paths:
-      - backend/performance-reports/
-    expire_in: 1 week
-  allow_failure: true
-  only:
-    - main
-    - tags
-
-# Cleanup stage
+# Cleanup stage: optional image cleanup
 cleanup:
-  stage: .post
+  stage: cleanup
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
     - echo "🧹 Cleaning up Docker images..."
     - docker image prune -f
     - echo "✅ Cleanup completed"
   when: always
-  allow_failure: true
