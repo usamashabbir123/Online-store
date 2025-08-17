@@ -1,0 +1,109 @@
+{
+  "app": {
+    "name": "FashionHub",
+    "version": "1.0.0",
+    "environment": "production",
+    "port": 5000,
+    "host": "0.0.0.0"
+  },
+  "frontend": {
+    "port": 3000,
+    "api_url": "http://localhost:5000",
+    "public_url": "https://fashionhub.yourdomain.com"
+  },
+  "database": {
+    "type": "postgresql",
+    "host": "localhost",
+    "port": 5432,
+    "name": "fashionhub_db",
+    "username": "fashionhub_user",
+    "password": "${POSTGRES_PASSWORD}",
+    "ssl": false,
+    "pool": {
+      "min": 2,
+      "max": 10,
+      "idle_timeout": 30000,
+      "acquire_timeout": 60000
+    }
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "password": "${REDIS_PASSWORD}",
+    "db": 0,
+    "key_prefix": "fashionhub:"
+  },
+  "auth": {
+    "jwt_secret": "${JWT_SECRET}",
+    "jwt_refresh_secret": "${JWT_REFRESH_SECRET}",
+    "jwt_expires_in": "24h",
+    "jwt_refresh_expires_in": "7d",
+    "bcrypt_rounds": 12
+  },
+  "upload": {
+    "max_size": 10485760,
+    "allowed_types": ["image/jpeg", "image/png", "image/webp"],
+    "storage_path": "/app/uploads",
+    "temp_path": "/tmp"
+  },
+  "email": {
+    "provider": "smtp",
+    "host": "${SMTP_HOST}",
+    "port": 587,
+    "secure": true,
+    "username": "${SMTP_USERNAME}",
+    "password": "${SMTP_PASSWORD}",
+    "from_address": "noreply@fashionhub.com",
+    "from_name": "FashionHub"
+  },
+  "payment": {
+    "stripe": {
+      "secret_key": "${STRIPE_SECRET_KEY}",
+      "publishable_key": "${STRIPE_PUBLISHABLE_KEY}",
+      "webhook_secret": "${STRIPE_WEBHOOK_SECRET}"
+    },
+    "paypal": {
+      "client_id": "${PAYPAL_CLIENT_ID}",
+      "client_secret": "${PAYPAL_CLIENT_SECRET}",
+      "mode": "live"
+    }
+  },
+  "security": {
+    "cors_origin": ["https://fashionhub.yourdomain.com"],
+    "rate_limit": {
+      "window_ms": 900000,
+      "max_requests": 100
+    },
+    "helmet": {
+      "enabled": true,
+      "content_security_policy": true
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "file": "/app/logs/app.log",
+    "max_size": "10m",
+    "max_files": 5
+  },
+  "monitoring": {
+    "health_check_interval": 30000,
+    "metrics_enabled": true,
+    "prometheus_port": 9090
+  },
+  "cache": {
+    "ttl": 3600,
+    "check_period": 600,
+    "max_keys": 1000
+  },
+  "admin": {
+    "email": "usamashabir37@gmail.com",
+    "default_password": "admin",
+    "auto_create": true
+  },
+  "development": {
+    "seed_data": false,
+    "debug_mode": false,
+    "hot_reload": false
+  }
+}

@@ -1,0 +1,37 @@
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fashionhub-frontend-service
+  namespace: fashionhub
+  labels:
+    app: fashionhub
+    component: frontend
+spec:
+  selector:
+    app: fashionhub
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+      name: frontend
+  type: ClusterIP
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fashionhub-backend-service
+  namespace: fashionhub
+  labels:
+    app: fashionhub
+    component: backend
+spec:
+  selector:
+    app: fashionhub
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+      name: backend
+  type: ClusterIP

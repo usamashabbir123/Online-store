@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: fashionhub-production
+
+namespace: fashionhub
+
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - deployment-patch.yaml
+  - ingress-patch.yaml
+
+configMapGenerator:
+  - name: fashionhub-config
+    behavior: merge
+    literals:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+      - DATABASE_HOST=localhost
+      - REDIS_HOST=localhost
+
+secretGenerator:
+  - name: fashionhub-secrets
+    behavior: merge
+    # Production secrets should be managed externally
+    # This is just a placeholder - use external secret management
+    literals:
+      - postgres-password=CHANGE_ME_IN_PRODUCTION
+      - redis-password=CHANGE_ME_IN_PRODUCTION
+      - jwt-secret=CHANGE_ME_IN_PRODUCTION
+      - jwt-refresh-secret=CHANGE_ME_IN_PRODUCTION
+
+images:
+  - name: registry.gitlab.com/YOUR_USERNAME/YOUR_PROJECT/fashionhub
+    newTag: v1.0.0
+
+commonLabels:
+  environment: production

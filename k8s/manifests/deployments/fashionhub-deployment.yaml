@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fashionhub-app
+  namespace: fashionhub
+  labels:
+    app: fashionhub
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: fashionhub
+  template:
+    metadata:
+      labels:
+        app: fashionhub
+        version: v1.0.0
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry
+      containers:
+        - name: fashionhub
+          image: registry.gitlab.com/YOUR_USERNAME/YOUR_PROJECT/fashionhub:latest
+          ports:
+            - name: frontend
+              containerPort: 3000
+              protocol: TCP
+            - name: backend
+              containerPort: 5000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: fashionhub-config
+          env:
+            # Database Configuration (from secrets)
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: postgres-password
+            # Redis Configuration (from secrets)
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: redis-password
+            # Authentication (from secrets)
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: jwt-secret
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: jwt-refresh-secret
+            # Email Configuration (from secrets)
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: smtp-host
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: smtp-username
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: smtp-password
+            # Payment Gateway - Stripe (from secrets)
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: stripe-secret-key
+            - name: STRIPE_PUBLISHABLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: stripe-publishable-key
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: stripe-webhook-secret
+            # Payment Gateway - PayPal (from secrets)
+            - name: PAYPAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: paypal-client-id
+            - name: PAYPAL_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fashionhub-secrets
+                  key: paypal-client-secret
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: uploads-volume
+              mountPath: /app/uploads
+            - name: logs-volume
+              mountPath: /app/logs
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+      volumes:
+        - name: uploads-volume
+          persistentVolumeClaim:
+            claimName: fashionhub-uploads-pvc
+        - name: logs-volume
+          persistentVolumeClaim:
+            claimName: fashionhub-logs-pvc
+      securityContext:
+        fsGroup: 1001

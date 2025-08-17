@@ -2,11 +2,17 @@ require('express-async-errors');
 require('dotenv').config();
 
 const express = require('express');
-const morgan = require('morgan');
+const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+const xss = require('xss-clean');
+const winston = require('winston');
 const path = require('path');
 
-// Import enhanced security middleware
-const { securityMiddleware, authLimiter, apiLimiter } = require('./middleware/security');
+// Load configuration
+const config = require('./config');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -18,107 +24,154 @@ const uploadRoutes = require('./routes/upload');
 const adminRoutes = require('./routes/admin');
 
 // Import middleware
-const { errorHandler, notFound } = require('./middleware/errorHandler');
-const { authenticateToken } = require('./middleware/auth');
+const errorHandler = require('./middleware/errorHandler');
+const securityLogger = require('./utils/securityLogger');
 
+// Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Apply security middleware stack
-app.use(securityMiddleware);
+// Configure logging
+const logger = winston.createLogger({
+  level: config.logging.level,
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: { service: 'fashionhub-backend' },
+  transports: [
+    new winston.transports.File({ 
+      filename: config.logging.file,
+      maxsize: config.logging.max_size,
+      maxFiles: config.logging.max_files
+    }),
+    new winston.transports.Console({
+      format: winston.format.simple()
+    })
+  ]
+});
 
-// Body parsing middleware with enhanced security
-app.use(express.json({ 
-  limit: process.env.UPLOAD_MAX_SIZE || '10mb',
-  verify: (req, res, buf) => {
-    // Store raw body for webhook verification
-    if (req.originalUrl === '/api/payments/webhook') {
-      req.rawBody = buf;
-    }
-  }
-}));
-app.use(express.urlencoded({ 
-  extended: true, 
-  limit: process.env.UPLOAD_MAX_SIZE || '10mb' 
-}));
-
-// Logging middleware
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined', {
-    skip: (req, res) => res.statusCode < 400
+// Security middleware
+if (config.security.helmet.enabled) {
+  app.use(helmet({
+    contentSecurityPolicy: config.security.helmet.content_security_policy
   }));
 }
 
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: config.security.rate_limit.window_ms,
+  max: config.security.rate_limit.max_requests,
+  message: {
+    error: 'Too many requests from this IP, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/', limiter);
+
+// CORS configuration
+app.use(cors({
+  origin: config.security.cors_origin,
+  credentials: true
+}));
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Security middleware
+app.use(hpp());
+app.use(xss());
+
+// Compression middleware
+app.use(compression());
+
+// Request logging
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`, {
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+  next();
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'FashionHub API is running',
+  res.status(200).json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    version: process.env.npm_package_version || '1.0.0',
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    environment: config.app.environment,
+    version: config.app.version
   });
 });
 
-// API routes with rate limiting
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/users', authenticateToken, apiLimiter, userRoutes);
-app.use('/api/products', apiLimiter, productRoutes);
-app.use('/api/orders', authenticateToken, apiLimiter, orderRoutes);
-app.use('/api/payments', authenticateToken, apiLimiter, paymentRoutes);
-app.use('/api/upload', authenticateToken, apiLimiter, uploadRoutes);
-app.use('/api/admin', authenticateToken, apiLimiter, adminRoutes);
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Static files (uploads)
+// Serve static files (uploads)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // 404 handler
-app.use(notFound);
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    message: `Cannot ${req.method} ${req.originalUrl}`
+  });
+});
 
 // Error handling middleware
 app.use(errorHandler);
 
+// Security logging
+app.use(securityLogger);
+
 // Start server
-const server = app.listen(PORT, () => {
-  console.log(`🚀 FashionHub Backend Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV}`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
-  console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
-  console.log(`🔒 Security: Enhanced security middleware enabled`);
-  console.log(`💳 Payments: Stripe, PayPal, Crypto support enabled`);
+const PORT = config.app.port || 5000;
+const HOST = config.app.host || '0.0.0.0';
+
+const server = app.listen(PORT, HOST, () => {
+  logger.info(`🚀 FashionHub Backend Server running on ${HOST}:${PORT}`);
+  logger.info(`📊 Environment: ${config.app.environment}`);
+  logger.info(`🔗 Health check: http://${HOST}:${PORT}/health`);
+  
+  if (config.isDevelopment()) {
+    logger.info(`🔧 Development mode enabled`);
+  }
 });
 
 // Graceful shutdown
-const gracefulShutdown = (signal) => {
-  console.log(`\n${signal} received, shutting down gracefully`);
-  
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received, shutting down gracefully');
   server.close(() => {
-    console.log('HTTP server closed');
+    logger.info('Process terminated');
     process.exit(0);
   });
+});
 
-  // Force close after 10 seconds
-  setTimeout(() => {
-    console.error('Could not close connections in time, forcefully shutting down');
-    process.exit(1);
-  }, 10000);
-};
-
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGINT', () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    logger.info('Process terminated');
+    process.exit(0);
+  });
+});
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  logger.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
 

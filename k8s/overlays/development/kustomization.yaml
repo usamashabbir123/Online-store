@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: fashionhub-development
+
+namespace: fashionhub-dev
+
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - deployment-patch.yaml
+  - configmap-patch.yaml
+
+configMapGenerator:
+  - name: fashionhub-config
+    behavior: merge
+    literals:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      - DATABASE_HOST=localhost
+      - REDIS_HOST=localhost
+
+secretGenerator:
+  - name: fashionhub-secrets
+    behavior: merge
+    literals:
+      - postgres-password=dev_password
+      - redis-password=dev_redis_password
+      - jwt-secret=dev_jwt_secret_key
+      - jwt-refresh-secret=dev_refresh_jwt_secret_key
+
+images:
+  - name: registry.gitlab.com/YOUR_USERNAME/YOUR_PROJECT/fashionhub
+    newTag: latest
+
+commonLabels:
+  environment: development

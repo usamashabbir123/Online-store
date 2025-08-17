@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fashionhub
+  labels:
+    name: fashionhub
+    app: fashionhub

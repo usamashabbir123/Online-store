@@ -1,0 +1,33 @@
+# Uploads PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fashionhub-uploads-pvc
+  namespace: fashionhub
+  labels:
+    app: fashionhub
+    component: uploads
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+# Logs PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fashionhub-logs-pvc
+  namespace: fashionhub
+  labels:
+    app: fashionhub
+    component: logs
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard

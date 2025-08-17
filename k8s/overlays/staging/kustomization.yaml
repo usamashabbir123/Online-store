@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: fashionhub-staging
+
+namespace: fashionhub-staging
+
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - deployment-patch.yaml
+  - ingress-patch.yaml
+
+configMapGenerator:
+  - name: fashionhub-config
+    behavior: merge
+    literals:
+      - NODE_ENV=staging
+      - LOG_LEVEL=info
+      - DATABASE_HOST=staging-postgres
+      - REDIS_HOST=staging-redis
+
+secretGenerator:
+  - name: fashionhub-secrets
+    behavior: merge
+    literals:
+      - postgres-password=staging_password
+      - redis-password=staging_redis_password
+      - jwt-secret=staging_jwt_secret_key
+      - jwt-refresh-secret=staging_refresh_jwt_secret_key
+
+images:
+  - name: registry.gitlab.com/YOUR_USERNAME/YOUR_PROJECT/fashionhub
+    newTag: staging
+
+commonLabels:
+  environment: staging

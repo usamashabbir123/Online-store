@@ -1,22 +1,34 @@
 const { PrismaClient } = require('@prisma/client');
+const config = require('../config');
 
+// Create Prisma client with configuration
 const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  datasources: {
+    db: {
+      url: config.getDatabaseUrl()
+    }
+  },
+  log: config.isDevelopment() ? ['query', 'info', 'warn', 'error'] : ['error']
 });
+
+// Test database connection
+async function testConnection() {
+  try {
+    await prisma.$connect();
+    console.log('✅ Database connection successful');
+    
+    // Test a simple query
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('✅ Database query test successful');
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    throw error;
+  }
+}
 
 // Graceful shutdown
 process.on('beforeExit', async () => {
   await prisma.$disconnect();
 });
 
-process.on('SIGINT', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-module.exports = prisma;
+module.exports = { prisma, testConnection };

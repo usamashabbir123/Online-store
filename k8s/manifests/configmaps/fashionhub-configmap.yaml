@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fashionhub-config
+  namespace: fashionhub
+data:
+  # Application Configuration
+  NODE_ENV: "production"
+  PORT: "5000"
+  NEXT_PUBLIC_API_URL: "http://localhost:5000"
+  
+  # Database Configuration (non-sensitive)
+  DATABASE_HOST: "localhost"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "fashionhub_db"
+  DATABASE_USERNAME: "fashionhub_user"
+  DATABASE_SSL: "false"
+  
+  # Redis Configuration (non-sensitive)
+  REDIS_HOST: "localhost"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_KEY_PREFIX: "fashionhub:"
+  
+  # Security Configuration
+  CORS_ORIGIN: "https://fashionhub.yourdomain.com"
+  RATE_LIMIT_WINDOW_MS: "900000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  
+  # Logging Configuration
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  LOG_FILE: "/app/logs/app.log"
+  
+  # Monitoring Configuration
+  HEALTH_CHECK_INTERVAL: "30000"
+  METRICS_ENABLED: "true"
+  PROMETHEUS_PORT: "9090"
+  
+  # Cache Configuration
+  CACHE_TTL: "3600"
+  CACHE_CHECK_PERIOD: "600"
+  CACHE_MAX_KEYS: "1000"
+  
+  # Admin Configuration
+  ADMIN_EMAIL: "usamashabir37@gmail.com"
+  ADMIN_PASSWORD: "admin"
+  AUTO_CREATE_ADMIN: "true"

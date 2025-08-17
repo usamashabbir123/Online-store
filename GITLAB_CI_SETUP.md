@@ -1,6 +1,6 @@
 # GitLab CI/CD Setup Guide for FashionHub Online Store
 
-This guide explains how to set up and use the GitLab CI/CD pipeline for your FashionHub project.
+This guide explains how to set up and use the GitLab CI/CD pipeline for building a single combined Docker image for Kubernetes deployment.
 
 ## 🚀 Pipeline Overview
 
@@ -8,15 +8,16 @@ The pipeline consists of 4 main stages:
 
 1. **Validate** - Code quality checks and dependency validation
 2. **Test** - Unit tests, integration tests, and security scans
-3. **Build** - Docker image building and pushing to registry
-4. **Deploy** - Deployment to staging and production environments
+3. **Build** - Single combined Docker image building with proper tagging
+4. **Tag** - Push combined image to container registry
 
 ## 📋 Prerequisites
 
 - GitLab project with CI/CD enabled
-- Docker registry access (GitLab Container Registry or external)
-- SSH access to deployment servers
-- PostgreSQL and Redis for testing
+- Docker registry access (GitLab Container Registry)
+- Kubernetes cluster for deployment (separate from CI/CD)
+- **PostgreSQL will be deployed as a Kubernetes service**
+- **Redis will be deployed as a Kubernetes service**
 
 ## 🔧 Required Environment Variables
 
@@ -30,27 +31,7 @@ CI_REGISTRY               # registry.gitlab.com
 CI_REGISTRY_IMAGE         # registry.gitlab.com/your-username/your-project
 ```
 
-### Staging Environment
-```
-STAGING_SSH_PRIVATE_KEY   # SSH private key for staging server
-STAGING_SSH_KNOWN_HOSTS   # SSH known hosts for staging server
-STAGING_SSH_USER          # SSH username for staging server
-STAGING_SSH_HOST          # Staging server hostname/IP
-STAGING_DEPLOY_PATH       # Path to docker-compose.yml on staging server
-STAGING_URL               # Staging environment URL
-```
-
-### Production Environment
-```
-PRODUCTION_SSH_PRIVATE_KEY    # SSH private key for production server
-PRODUCTION_SSH_KNOWN_HOSTS    # SSH known hosts for production server
-PRODUCTION_SSH_USER           # SSH username for production server
-PRODUCTION_SSH_HOST           # Production server hostname/IP
-PRODUCTION_DEPLOY_PATH        # Path to docker-compose.yml on production server
-PRODUCTION_URL                # Production environment URL
-```
-
-## 🏷️ Creating Tags for Deployment
+## 🏷️ Creating Tags for Image Building
 
 ### 1. Create a Tag Locally
 ```bash
@@ -70,13 +51,14 @@ git push origin v1.0.0
 
 The pipeline runs automatically on:
 - **Merge Requests** - Runs validate and test stages
-- **Main Branch** - Runs all stages including production deployment
-- **Develop Branch** - Runs all stages including staging deployment
-- **Tags** - Runs all stages including production deployment (manual trigger)
+- **Main Branch** - Runs all stages including image building and tagging
+- **Develop Branch** - Runs all stages including image building and tagging
+- **Tags** - Runs all stages including image building and tagging
 
 ## 📊 Pipeline Stages Breakdown
 
 ### Validate Stage
+- **Structure Validation**: Checks if all required project files exist
 - **Backend Validation**: Checks dependencies, Prisma schema, security audits
 - **Frontend Validation**: Checks dependencies, TypeScript configuration
 
@@ -88,18 +70,20 @@ The pipeline runs automatically on:
 - **Performance**: Runs performance tests (if configured)
 
 ### Build Stage
-- **Backend Build**: Builds and pushes backend Docker image
-- **Frontend Build**: Builds and pushes frontend Docker image
+- **Combined Build**: Builds single Docker image containing both frontend and backend
 
-### Deploy Stage
-- **Staging**: Automatic deployment to staging environment
-- **Production**: Manual deployment to production environment
+### Tag Stage
+- **Combined Tag**: Pushes combined image to registry with version tags
 
-## 🐳 Docker Images
+## 🐳 Docker Images Created
 
-The pipeline builds and pushes two Docker images:
-- `backend:latest` and `backend:{commit-sha}`
-- `frontend:latest` and `frontend:{commit-sha}`
+### Tag Builds (e.g., v1.0.0)
+- `fashionhub:v1.0.0` - Versioned combined image
+- `fashionhub:latest` - Latest combined image
+
+### Branch Builds
+- `fashionhub:main` / `fashionhub:develop` - Branch-specific combined images
+- `fashionhub:{commit-sha}` - Commit-specific combined images
 
 ## 🔍 Monitoring and Debugging
 
@@ -112,9 +96,10 @@ The pipeline builds and pushes two Docker images:
 - Performance test results
 - Generated documentation
 
-### Health Checks
-- Backend health check at `/health` endpoint
-- Docker health checks for containers
+### Image Registry
+- Check built images in GitLab Container Registry
+- Verify image tags and sizes
+- Pull images for local testing
 
 ## 🚨 Troubleshooting
 
@@ -122,22 +107,18 @@ The pipeline builds and pushes two Docker images:
 
 1. **Docker Build Failures**
    - Check Dockerfile syntax
-   - Verify all dependencies are in package.json
+   - Verify all dependencies are in package.json files
    - Check for missing files in build context
 
-2. **Database Connection Issues**
-   - Verify PostgreSQL service is running
-   - Check database credentials in environment variables
+2. **Registry Push Failures**
+   - Verify registry credentials
+   - Check image naming conventions
+   - Ensure registry has sufficient storage
+
+3. **Validation Failures**
+   - Check for missing dependencies
+   - Verify TypeScript configuration
    - Ensure Prisma schema is valid
-
-3. **SSH Connection Failures**
-   - Verify SSH private key is correct
-   - Check server accessibility
-   - Verify known_hosts entry
-
-4. **Permission Issues**
-   - Ensure SSH keys have correct permissions
-   - Check file ownership on deployment servers
 
 ### Debug Commands
 
@@ -149,15 +130,18 @@ gitlab-ci-lint .gitlab-ci.yml
 gitlab-ci-logs
 
 # Test Docker builds locally
-docker build -t test-backend ./backend
-docker build -t test-frontend ./frontend
+docker build -t test-fashionhub .
+
+# Pull and test built images
+docker pull registry.gitlab.com/your-username/your-project/fashionhub:v1.0.0
+docker run -p 3000:3000 -p 5000:5000 registry.gitlab.com/your-username/your-project/fashionhub:v1.0.0
 ```
 
 ## 🔐 Security Considerations
 
 - Store sensitive data in GitLab CI/CD variables (not in code)
-- Use SSH keys instead of passwords
-- Regularly rotate access tokens and keys
+- Use personal access tokens with minimal required permissions
+- Regularly rotate access tokens
 - Enable branch protection rules
 - Require merge request approvals
 
@@ -171,10 +155,40 @@ docker build -t test-frontend ./frontend
 ## 🎯 Next Steps
 
 1. **Set up environment variables** in GitLab
-2. **Configure deployment servers** with SSH access
-3. **Test the pipeline** with a small change
-4. **Create your first tag** for production deployment
+2. **Test the pipeline** with a small change
+3. **Create your first tag** for image building
+4. **Deploy to Kubernetes** using the built combined image
 5. **Monitor pipeline performance** and optimize as needed
+
+## 🚀 Kubernetes Deployment
+
+After building the combined image, deploy it to Kubernetes:
+
+1. **Pull combined image** from GitLab Container Registry
+2. **Apply Kubernetes manifests** (see `KUBERNETES_DEPLOYMENT.md`)
+3. **Update deployment** with new image tags
+4. **Monitor deployment** status and health
+
+## 🗄️ Kubernetes Database Services
+
+### **PostgreSQL Database**
+- **Deployed as Kubernetes service** in the same namespace
+- **Service name**: `postgres-service`
+- **Port**: 5432
+- **Database**: fashionhub_db
+- **User**: fashionhub_user
+- **Password**: Stored in Kubernetes secrets
+
+### **Redis Instance**
+- **Deployed as Kubernetes service** in the same namespace
+- **Service name**: `redis-service`
+- **Port**: 6379
+- **Password**: Stored in Kubernetes secrets
+
+### **Connection Details**
+The application automatically connects to:
+- `DATABASE_URL`: `postgresql://fashionhub_user:password@postgres-service:5432/fashionhub_db`
+- `REDIS_URL`: `redis://:password@redis-service:6379`
 
 ## 📚 Additional Resources
 
@@ -182,7 +196,8 @@ docker build -t test-frontend ./frontend
 - [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
 - [Prisma Documentation](https://www.prisma.io/docs/)
 - [Next.js Deployment](https://nextjs.org/docs/deployment)
+- [Kubernetes Deployment Guide](KUBERNETES_DEPLOYMENT.md)
 
 ---
 
-**Note**: This pipeline is configured for a typical development workflow. Adjust stages, jobs, and triggers based on your specific requirements and team workflow.
+**Note**: This pipeline is configured for building a single combined Docker image containing both frontend and backend services. PostgreSQL and Redis are deployed as Kubernetes services in the same namespace. See `KUBERNETES_DEPLOYMENT.md` for deployment instructions.
